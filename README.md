@@ -1,14 +1,3 @@
-## Docker Notes
-
-- docker build . -t subin/node-web-app
-- docker images
-- docker run -p 49160:8080 -d subin/node-web-app
-- docker ps
-- docker logs <container id>
-- docker exec -it <container id> /bin/bash -> enter container id
-
-ref: https://nodejs.org/en/docs/guides/nodejs-docker-webapp
-
 ## Mongodb
 
 testuser1/rip4Cao2NcIQSUfz
