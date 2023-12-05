@@ -1,4 +1,4 @@
-const ReadingLesson = require("../models/SingleReading");
+const ReadingLesson = require("../models/ReadingLesson");
 
 // Create a new lesson
 const createReadingLesson = async (req, res) => {

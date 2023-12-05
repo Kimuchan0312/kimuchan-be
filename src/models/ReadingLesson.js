@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const singleReadingLessonSchema = new mongoose.Schema(
+const readingLessonSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     content: { type: String, required: true },
-    jlptLevel: { type: Number, enum: ['N1', 'N2', 'N3', 'N4', 'N5'], default: 'N5' },
+    jlptLevel: { type: String, enum: ['N1', 'N2', 'N3', 'N4', 'N5'], default: 'N5' },
     vocabulary: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Vocabulary', required: true }],
     questions: [
       {
@@ -22,6 +22,7 @@ const singleReadingLessonSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const ReadingLesson = mongoose.model("SingleReadingLesson", singleReadingLessonSchema);
+// Use "ReadingLesson" as the model name
+const ReadingLesson = mongoose.model("ReadingLesson", readingLessonSchema);
 
 module.exports = ReadingLesson;
