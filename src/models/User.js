@@ -9,6 +9,13 @@ const userSchema = mongoose.Schema(
     username: { type: String, default: null },
     googleId: { type: String },
     avatarUrl: { type: String, default: null },
+    name: { type: String, default: null },
+    coverUrl: { type: String, default: null },
+    phoneNumber: { type: String, default: null },
+    address: { type: String, default: null },
+    city: { type: String, default: null },
+    country: { type: String, default: null },
+    aboutMe: { type: String, default: null },
     role: {
       type: String,
       enum: ["admin", "user"],
