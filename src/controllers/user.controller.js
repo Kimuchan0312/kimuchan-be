@@ -7,6 +7,7 @@ const User = require("../models/User");
 
 const userController = {};
 
+
 userController.register = async (req, res, next) => {
   await body('email').isEmail().normalizeEmail().run(req);
   await body('password').isLength({ min: 6 }).run(req);
@@ -53,8 +54,8 @@ userController.register = async (req, res, next) => {
   }
 };
 
-userController.updateUser = async (req, res) => {
-  const { userId } = req.params;
+userController.updateCurrentUser = async (req, res) => {
+  const userId = req.userId;
   const { username, avatarUrl, role } = req.body;
 
   try {
@@ -95,8 +96,8 @@ userController.updateUser = async (req, res) => {
   }
 };
 
-userController.getOneUser = async (req, res) => {
-  const { userId } = req.params;
+userController.getCurrentUser = async (req, res) => {
+  const userId = req.userId;
 
   try {
     if (req.user._id.toString() !== userId) {

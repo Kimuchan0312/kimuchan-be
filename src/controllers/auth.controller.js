@@ -1,93 +1,159 @@
-const { AppError, catchAsync, sendResponse } = require("../helpers/utils");
-const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const { MessageUtil, ResponseUtil } = require("../utils");
+const User = require("../models/User");
+
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
 
 const authController = {};
 
-authController.login = catchAsync(async (req, res, next) => {
-  // Get data from request
-  const { email, password, currentFcmToken } = req.body;
+authController.login = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
 
-  // Business Logic Validation
-  const user = await User.findOne(
-    { email, isDeleted: false },
-    "+password"
-  ).populate("role");
-  if (!user) throw new AppError(400, "Invalid Email", "Login Error");
+    const user = await User.findOne(
+      { email, isDeleted: false },
+      "+password"
+    ).populate("role");
 
-  // Process
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) throw new AppError(400, "Wrong password", "Login Error");
+    if (!user) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.INVALID_EMAIL
+      );
+    }
 
-  if (user && user.status === "terminated") {
-    throw new AppError(400, "Unauthorized to login", "Login Error");
-  }
+    const isMatch = await bcrypt.compare(password, user.password);
 
-  if (!user.fcmTokens.includes(currentFcmToken)) {
-    user.fcmTokens.push(currentFcmToken);
-  }
-  await user.save();
+    if (!isMatch) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.INVALID_PASSWORD
+      );
+    }
 
-  const accessToken = await user.generateAccessToken(currentFcmToken);
+    if (user && user.status === "terminated") {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.USER.UNAUTHORIZED_LOGIN
+      );
+    }
 
-  // Response
-  sendResponse(
-    res,
-    200,
-    true,
-    { user, accessToken },
-    null,
-    "Login Successfully"
-  );
-});
+    const accessToken = jwt.sign({ userId: user._id }, JWT_SECRET_KEY, {
+      expiresIn: "1h",
+    });
 
-authController.accountSetup = catchAsync(async (req, res, next) => {
-  // Get data from request
-  const currentUserId = req.setupUserId;
-  let { userName, email, password } = req.body;
-
-  // Business Logic Validation
-  let user = await User.findById(currentUserId);
-  if (!user) throw new AppError(400, "Not found", "Setup Account Error");
-  if (user.email !== email)
-    throw new AppError(400, "Invalid Email", "Setup Account Error");
-  if (user.status !== "pending")
-    throw new AppError(400, "Already set up account", "Setup Account Error");
-
-  const userSameName = await User.findOne({
-    userName,
-    _id: { $ne: currentUserId },
-  });
-  if (userSameName)
-    throw new AppError(
-      400,
-      "User Name has been already taken",
-      "Setup Account Error"
+    ResponseUtil.sendSuccess(
+      res,
+      { user, accessToken },
+      MessageUtil.USER.LOGIN_SUCCESSFUL
     );
+  } catch (error) {
+    console.error(error);
+    ResponseUtil.sendError(
+      res,
+      ResponseUtil.INTERNAL_SERVER_ERROR,
+      "Internal server error"
+    );
+  }
+};
 
-  // Process
-  const salt = await bcrypt.genSalt(10);
-  password = await bcrypt.hash(password, salt);
-  user.userName = userName;
-  user.password = password;
-  user.status = "active";
-  await user.save();
+authController.accountSetup = async (req, res, next) => {
+  try {
+    const currentUserId = req.setupUserId;
+    let { userName, email, password } = req.body;
 
-  // Response
-  sendResponse(res, 200, true, user, null, "Setup Account Successfully");
-});
+    let user = await User.findById(currentUserId);
 
-authController.logout = catchAsync(async (req, res, next) => {
-  const currentUserId = req.userId;
-  const currentFcmToken = req.currentFcmToken;
+    if (!user) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.USER.USER_NOT_FOUND
+      );
+    }
 
-  const user = await User.findById(currentUserId);
+    if (user.email !== email) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.INVALID_EMAIL
+      );
+    }
 
-  const fcmTokens = user.fcmTokens;
+    if (user.status !== "pending") {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.USER.ACCOUNT_ALREADY_SET_UP
+      );
+    }
 
-  user.fcmTokens = fcmTokens.filter((token) => token !== currentFcmToken);
-  await user.save();
+    const userSameName = await User.findOne({
+      userName,
+      _id: { $ne: currentUserId },
+    });
 
-  sendResponse(res, 201, true, null, null, "Logout successfully");
-});
+    if (userSameName) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.USER.USERNAME_ALREADY_TAKEN
+      );
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    password = await bcrypt.hash(password, salt);
+    user.userName = userName;
+    user.password = password;
+    user.status = "active";
+    await user.save();
+
+    ResponseUtil.sendSuccess(
+      res,
+      user,
+      MessageUtil.USER.REGISTER_SUCCESSFUL
+    );
+  } catch (error) {
+    console.error(error);
+    ResponseUtil.sendError(
+      res,
+      ResponseUtil.INTERNAL_SERVER_ERROR,
+      "Internal server error"
+    );
+  }
+};
+
+authController.logout = async (req, res, next) => {
+  try {
+    const currentUserId = req.userId;
+
+    const user = await User.findById(currentUserId);
+
+    if (!user) {
+      return ResponseUtil.sendError(
+        res,
+        ResponseUtil.BAD_REQUEST,
+        MessageUtil.USER.USER_NOT_FOUND
+      );
+    }
+
+    ResponseUtil.sendSuccess(
+      res,
+      null,
+      MessageUtil.USER.LOG
+    );
+  } catch (error) {
+    console.error(error);
+    ResponseUtil.sendError(
+      res,
+      ResponseUtil.INTERNAL_SERVER_ERROR,
+      "Internal server error"
+    );
+  }
+};
+
 module.exports = authController;

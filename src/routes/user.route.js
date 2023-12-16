@@ -7,15 +7,12 @@ const { authentication } = require("../middlewares");
 router.post("/", UserController.register);
 
 router.put(
-  "/users/:userId",
+  "/users/me",
   authentication.loginRequired,
-  UserController.updateUser
+  UserController.updateCurrentUser
 );
-router.get(
-  "/users/:userId",
-  authentication.loginRequired,
-  UserController.getOneUser
-);
+router.get("/me", authentication.loginRequired, UserController.getCurrentUser);
+
 router.get(
   "/users",
   authentication.authenticateUserAndAdmin,

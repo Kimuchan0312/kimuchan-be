@@ -5,12 +5,15 @@ class MessageUtil {
     USER_NOT_FOUND: 'Unauthorized. User not found.',
     INVALID_ROLE: 'Invalid role. Must be "admin" or "user".',
     REGISTER_SUCCESSFUL: 'Register successful.',
+    LOGIN_SUCCESSFUL: 'Login successful.',
     PERMISSION_DENIED_NON_ADMIN_USER: "Permission denied. Only admins can access this resource.",
     PERMISSION_DENIED_NON_SAME_USER: "Permission denied. You can only access your own user information.",
     RESET_PASSWORD_EMAIL_SENT: "Reset password email sent.",
     INVALID_RESET_TOKEN: "Invalid reset token.",
     PASSWORD_RESET_SUCCESSFUL: "Password reset successful.",
     USER_DELETE_SUCCESSFUL: "User deleted successfully.",
+    USERNAME_ALREADY_TAKEN: "Username already taken",
+    ACCOUNT_ALREADY_SET_UP: "Account already set up"
   }
 
   static INVALID_OBJECT_ID = "Invalid ObjectId"

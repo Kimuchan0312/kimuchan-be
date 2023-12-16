@@ -6,7 +6,7 @@ const category = require('./category.route.js');
 const readingLesson = require('./readingLesson.route.js');
 const test = require('./test.route.js');
 // const testResult = require('./testResult.route.js');
-// const userActivity = require('./userActivity.route.js');
+const auth = require('./auth.route.js');
 // const result = require('./result.route.js');
 
 const router = express.Router();
@@ -22,8 +22,7 @@ router.use('/users', user);
 router.use('/categories', category);
 router.use('/reading-lessons', readingLesson);
 router.use('/tests', test);
+router.use('/auth', auth);
 // router.use('/results', result);
 // router.use('/test-results', testResult);
-// router.use('/user-activities', userActivity);
-
 module.exports = router;
